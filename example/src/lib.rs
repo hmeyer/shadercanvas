@@ -4,8 +4,15 @@ use wasm_bindgen::JsCast;
 use wasm_timer::Instant;
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlShader, WebGlUniformLocation};
 
+#[macro_use]
+extern crate log;
+use log::Level;
 
-pub struct ShaderCanvas {
+use std::rc::Rc;
+
+extern crate shadercanvas;
+
+struct ShaderCanvas {
     canvas: web_sys::HtmlCanvasElement,
     context: WebGl2RenderingContext,
     iresolution_loc: Option<WebGlUniformLocation>,
@@ -16,7 +23,7 @@ pub struct ShaderCanvas {
 }
 
 impl ShaderCanvas {
-    pub fn new(canvas: web_sys::HtmlCanvasElement) -> Result<ShaderCanvas, JsValue> {
+    fn new(canvas: web_sys::HtmlCanvasElement) -> Result<ShaderCanvas, JsValue> {
         let context: WebGl2RenderingContext = canvas
             .get_context("webgl2")
             .map_err(|e| format!("Cannot get webgl2 context: {:?}", e.as_string()))?
@@ -122,7 +129,7 @@ impl ShaderCanvas {
         })
     }
 
-    pub fn draw(&self) {
+    fn draw(&self) {
         self.context.clear_color(0.0, 0.0, 0.0, 1.0);
         self.context.clear(WebGl2RenderingContext::COLOR_BUFFER_BIT);
         self.context.uniform2fv_with_f32_array(
@@ -138,6 +145,39 @@ impl ShaderCanvas {
             self._vertex_count as i32,
         );
     }
+}
+
+#[wasm_bindgen(start)]
+pub fn start() -> Result<(), JsValue> {
+    console_log::init_with_level(Level::Debug).unwrap();
+    let window = web_sys::window().unwrap();
+    let document = window.document().unwrap();
+    let canvas = document.get_element_by_id("canvas").unwrap();
+    let canvas: web_sys::HtmlCanvasElement = canvas.dyn_into::<web_sys::HtmlCanvasElement>()?;
+    let cw = (window.inner_width().unwrap().as_f64().unwrap() * 0.8) as u32;
+    let ch = (window.inner_height().unwrap().as_f64().unwrap() * 0.8) as u32;
+    info!("setting canvas dimensions to [{}x{}].", cw, ch);
+    canvas.set_width(cw);
+    canvas.set_height(ch);
+
+    let shader_canvas = ShaderCanvas::new(canvas)?;
+    let shader_canvas = Rc::new(shader_canvas);
+
+    {
+        let clone = shader_canvas.clone();
+        let closure = Closure::<dyn FnMut(_)>::new(move |_event: web_sys::MouseEvent| {
+            info!("called event");
+            clone.draw();
+        });
+        shader_canvas
+            .canvas
+            .add_event_listener_with_callback("mousedown", closure.as_ref().unchecked_ref())?;
+        closure.forget();
+    }
+
+    shader_canvas.draw();
+
+    Ok(())
 }
 
 fn compile_shader(
