@@ -1,5 +1,5 @@
 [package]
-name = "shadercanvas-example"
+name = "example"
 version = "0.0.1"
 authors = ["Henning Meyer <tutmann@gmail.com>"]
 edition = "2018"
@@ -14,12 +14,11 @@ license = "Apache-2.0 OR MIT"
 crate-type = ["cdylib"]
 
 [dependencies]
-shadercanvas = "0.0.1"
+shadercanvas = "0.0.3"
 js-sys = "0.3.60"
 wasm-bindgen = "0.2.83"
 log = "0.4"
 console_log = { version = "0.2", features = ["color"], optional = true }
-wasm-timer = "0.2.5"
 
 [features]
 default = ["console_log"]

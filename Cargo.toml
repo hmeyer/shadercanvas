@@ -1,6 +1,6 @@
 [package]
 name = "shadercanvas"
-version = "0.0.2"
+version = "0.0.3"
 authors = ["Henning Meyer <tutmann@gmail.com>"]
 edition = "2018"
 
@@ -9,9 +9,6 @@ repository = "https://github.com/hmeyer/shadercanvas"
 readme = "README.md"
 keywords = ["shader", "glsl", "webgl", "canvas"]
 license = "Apache-2.0 OR MIT"
-
-[lib]
-crate-type = ["cdylib"]
 
 [dependencies]
 js-sys = "0.3.60"
