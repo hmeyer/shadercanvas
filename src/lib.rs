@@ -11,7 +11,7 @@ pub struct ShaderCanvas {
     iresolution_loc: Option<WebGlUniformLocation>,
     imouse_loc: Option<WebGlUniformLocation>,
     itime_loc: Option<WebGlUniformLocation>,
-    _vertex_count: usize,
+    vertex_count: usize,
     time: Instant,
 }
 
@@ -117,7 +117,7 @@ impl ShaderCanvas {
             iresolution_loc,
             imouse_loc,
             itime_loc,
-            _vertex_count: vertices.len() / 3,
+            vertex_count: vertices.len() / 3,
             time: Instant::now(),
         })
     }
@@ -135,7 +135,7 @@ impl ShaderCanvas {
         self.context.draw_arrays(
             WebGl2RenderingContext::TRIANGLES,
             0,
-            self._vertex_count as i32,
+            self.vertex_count as i32,
         );
     }
 }
