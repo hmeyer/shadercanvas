@@ -18,9 +18,7 @@ wasm-timer = "0.2.5"
 [dependencies.web-sys]
 version = "0.3.4"
 features = [
-  'Document',
   'HtmlCanvasElement',
-  'MouseEvent',
   'WebGlBuffer',
   'WebGlVertexArrayObject',
   'WebGl2RenderingContext',
