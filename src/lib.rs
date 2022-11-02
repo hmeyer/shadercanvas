@@ -1,8 +1,8 @@
+use js_sys;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
-use web_sys::{WebGl2RenderingContext, WebGlUniformLocation, WebGlProgram, WebGlShader};
-use js_sys;
 use wasm_timer::Instant;
+use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlShader, WebGlUniformLocation};
 
 #[macro_use]
 extern crate log;
@@ -10,10 +10,9 @@ use log::Level;
 
 use std::rc::Rc;
 
-
 struct ShaderCanvas {
     canvas: web_sys::HtmlCanvasElement,
-    context : WebGl2RenderingContext,
+    context: WebGl2RenderingContext,
     iresolution_loc: Option<WebGlUniformLocation>,
     imouse_loc: Option<WebGlUniformLocation>,
     itime_loc: Option<WebGlUniformLocation>,
@@ -23,10 +22,14 @@ struct ShaderCanvas {
 
 impl ShaderCanvas {
     fn new(canvas: web_sys::HtmlCanvasElement) -> Result<ShaderCanvas, JsValue> {
-        let context : WebGl2RenderingContext = canvas
-        .get_context("webgl2").map_err(|e| format!("Cannot get webgl2 context: {:?}", e.as_string()))?
-        .unwrap()
-        .dyn_into::<WebGl2RenderingContext>().or(Err(String::from("Cannot cast context to WebGl2RenderingContext")))?;
+        let context: WebGl2RenderingContext = canvas
+            .get_context("webgl2")
+            .map_err(|e| format!("Cannot get webgl2 context: {:?}", e.as_string()))?
+            .unwrap()
+            .dyn_into::<WebGl2RenderingContext>()
+            .or(Err(String::from(
+                "Cannot cast context to WebGl2RenderingContext",
+            )))?;
 
         let vert_shader = compile_shader(
             &context,
@@ -79,8 +82,10 @@ impl ShaderCanvas {
         let imouse_loc = context.get_uniform_location(&program, "iMouse");
         let itime_loc = context.get_uniform_location(&program, "iTime");
 
-        let vertices: [f32; 18] = [-1.0, -1.0, 0.0, 1.0, -1.0, 0.0, -1.0,  1.0, 0.0,
-                                -1.0,  1.0, 0.0, 1.0,  1.0, 0.0,  1.0, -1.0, 0.0];
+        let vertices: [f32; 18] = [
+            -1.0, -1.0, 0.0, 1.0, -1.0, 0.0, -1.0, 1.0, 0.0, -1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0,
+            -1.0, 0.0,
+        ];
 
         let position_attribute_location = context.get_attrib_location(&program, "position");
         let buffer = context.create_buffer().ok_or("Failed to create buffer")?;
@@ -125,11 +130,19 @@ impl ShaderCanvas {
     fn draw(&self) {
         self.context.clear_color(0.0, 0.0, 0.0, 1.0);
         self.context.clear(WebGl2RenderingContext::COLOR_BUFFER_BIT);
-        self.context.uniform2fv_with_f32_array(self.iresolution_loc.as_ref(), &[self.canvas.width() as f32, self.canvas.height() as f32]);
+        self.context.uniform2fv_with_f32_array(
+            self.iresolution_loc.as_ref(),
+            &[self.canvas.width() as f32, self.canvas.height() as f32],
+        );
         let now = (self.time.elapsed().as_millis() as f64 / 1000.0) as f32;
-        self.context.uniform1fv_with_f32_array(self.itime_loc.as_ref(), &[now]);
-        self.context.draw_arrays(WebGl2RenderingContext::TRIANGLES, 0, self._vertex_count as i32);
-    }    
+        self.context
+            .uniform1fv_with_f32_array(self.itime_loc.as_ref(), &[now]);
+        self.context.draw_arrays(
+            WebGl2RenderingContext::TRIANGLES,
+            0,
+            self._vertex_count as i32,
+        );
+    }
 }
 
 #[wasm_bindgen(start)]
@@ -154,7 +167,9 @@ pub fn start() -> Result<(), JsValue> {
             info!("called event");
             clone.draw();
         });
-        shader_canvas.canvas.add_event_listener_with_callback("mousedown", closure.as_ref().unchecked_ref())?;
+        shader_canvas
+            .canvas
+            .add_event_listener_with_callback("mousedown", closure.as_ref().unchecked_ref())?;
         closure.forget();
     }
 
