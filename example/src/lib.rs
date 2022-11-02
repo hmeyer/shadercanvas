@@ -23,7 +23,7 @@ pub fn start() -> Result<(), JsValue> {
     canvas.set_width(cw);
     canvas.set_height(ch);
 
-    let shader_canvas = ShaderCanvas::new(canvas)?;
+    let shader_canvas = ShaderCanvas::new(canvas.clone())?;
     let shader_canvas = Rc::new(shader_canvas);
 
     {
@@ -32,9 +32,7 @@ pub fn start() -> Result<(), JsValue> {
             info!("called event");
             clone.draw();
         });
-        shader_canvas
-            .canvas
-            .add_event_listener_with_callback("mousedown", closure.as_ref().unchecked_ref())?;
+        canvas.add_event_listener_with_callback("mousedown", closure.as_ref().unchecked_ref())?;
         closure.forget();
     }
 

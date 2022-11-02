@@ -14,7 +14,7 @@ license = "Apache-2.0 OR MIT"
 crate-type = ["cdylib"]
 
 [dependencies]
-shadercanvas = "0.0.3"
+shadercanvas = "0.0.4"
 js-sys = "0.3.60"
 wasm-bindgen = "0.2.83"
 log = "0.4"
