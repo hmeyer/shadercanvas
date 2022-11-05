@@ -4,16 +4,49 @@ use wasm_bindgen::JsCast;
 use wasm_timer::Instant;
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlShader, WebGlUniformLocation};
 
-
 pub struct ShaderCanvas {
     canvas: web_sys::HtmlCanvasElement,
     context: WebGl2RenderingContext,
+    time: Instant,
     iresolution_loc: Option<WebGlUniformLocation>,
     imouse_loc: Option<WebGlUniformLocation>,
     itime_loc: Option<WebGlUniformLocation>,
-    vertex_count: usize,
-    time: Instant,
 }
+
+static VERTICES: &'static [f32] = &[
+    -1.0, -1.0, 0.0, 1.0, -1.0, 0.0, -1.0, 1.0, 0.0, -1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, -1.0, 0.0,
+];
+
+static DEFAULT_SHADER: &'static str = r##"
+    void mainImage( out vec4 fragColor, in vec2 fragCoord )
+    {
+        fragColor = vec4(0.5);
+    }
+"##;
+
+static VERTEX_SHADER: &'static str = r##"#version 300 es
+    in vec4 position;
+
+    void main() {
+        gl_Position = position;
+    }
+"##;
+
+static FRAG_SHADER_PREFIX: &'static str = r##"#version 300 es
+precision highp float;
+out vec4 outColor;
+uniform vec2 iResolution;
+uniform vec2 iMouse;
+uniform float iTime;
+"##;
+
+static FRAG_SHADER_SUFFIX: &'static str = r##"#version 300 es
+precision highp float;
+out vec4 outColor;
+uniform vec2 iResolution;
+uniform vec2 iMouse;
+uniform float iTime;
+"##;
 
 impl ShaderCanvas {
     pub fn new(canvas: web_sys::HtmlCanvasElement) -> Result<ShaderCanvas, JsValue> {
@@ -26,80 +59,61 @@ impl ShaderCanvas {
                 "Cannot cast context to WebGl2RenderingContext",
             )))?;
 
-        let vert_shader = compile_shader(
-            &context,
-            WebGl2RenderingContext::VERTEX_SHADER,
-            r##"#version 300 es
-    
-            in vec4 position;
+        let mut result = ShaderCanvas {
+            canvas,
+            context,
+            time: Instant::now(),
+            iresolution_loc: None,
+            imouse_loc: None,
+            itime_loc: None,
+        };
+        result.set_shader(DEFAULT_SHADER)?;
+        Ok(result)
+    }
 
-            void main() {
-                gl_Position = position;
-            }
-            "##,
+    pub fn set_shader(&mut self, shader: &str) -> Result<(), JsValue> {
+        let vert_shader = compile_shader(
+            &self.context,
+            WebGl2RenderingContext::VERTEX_SHADER,
+            VERTEX_SHADER,
         )?;
+
+        let frag_shader = format!("{}{}{}", FRAG_SHADER_PREFIX, shader, FRAG_SHADER_SUFFIX);
 
         let frag_shader = compile_shader(
-            &context,
+            &self.context,
             WebGl2RenderingContext::FRAGMENT_SHADER,
-            r##"#version 300 es
-        
-            precision highp float;
-            out vec4 outColor;
-
-
-            uniform vec2 iResolution;
-            uniform vec2 iMouse;
-            uniform float iTime;
-
-            void mainImage( out vec4 fragColor, in vec2 fragCoord )
-            {
-                // Normalized pixel coordinates (from 0 to 1)
-                vec2 uv = fragCoord/iResolution.xy;
-            
-                // Time varying pixel color
-                vec3 col = 0.5 + 0.5*cos(iTime+uv.xyx+vec3(0,2,4));
-            
-                // Output to screen
-                fragColor = vec4(col,1.0);
-            }        
-            
-            void main() {
-                mainImage(outColor, gl_FragCoord.xy);
-            }
-            "##,
+            &frag_shader,
         )?;
 
-        let program = link_program(&context, &vert_shader, &frag_shader)?;
-        context.use_program(Some(&program));
+        let program = link_program(&self.context, &vert_shader, &frag_shader)?;
+        self.context.use_program(Some(&program));
 
-        let iresolution_loc = context.get_uniform_location(&program, "iResolution");
-        let imouse_loc = context.get_uniform_location(&program, "iMouse");
-        let itime_loc = context.get_uniform_location(&program, "iTime");
+        self.iresolution_loc = self.context.get_uniform_location(&program, "iResolution");
+        self.imouse_loc = self.context.get_uniform_location(&program, "iMouse");
+        self.itime_loc = self.context.get_uniform_location(&program, "iTime");
 
-        let vertices: [f32; 18] = [
-            -1.0, -1.0, 0.0, 1.0, -1.0, 0.0, -1.0, 1.0, 0.0, -1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0,
-            -1.0, 0.0,
-        ];
-
-        let position_attribute_location = context.get_attrib_location(&program, "position");
-        let buffer = context.create_buffer().ok_or("Failed to create buffer")?;
-        context.bind_buffer(WebGl2RenderingContext::ARRAY_BUFFER, Some(&buffer));
-
-        let positions_array_buf_view = js_sys::Float32Array::from(&vertices[..]);
-
-        context.buffer_data_with_array_buffer_view(
+        let position_attribute_location = self.context.get_attrib_location(&program, "position");
+        let buffer = self
+            .context
+            .create_buffer()
+            .ok_or("Failed to create buffer")?;
+        self.context
+            .bind_buffer(WebGl2RenderingContext::ARRAY_BUFFER, Some(&buffer));
+        let positions_array_buf_view = js_sys::Float32Array::from(&VERTICES[..]);
+        self.context.buffer_data_with_array_buffer_view(
             WebGl2RenderingContext::ARRAY_BUFFER,
             &positions_array_buf_view,
             WebGl2RenderingContext::STATIC_DRAW,
         );
 
-        let vao = context
+        let vao = self
+            .context
             .create_vertex_array()
             .ok_or("Could not create vertex array object")?;
-        context.bind_vertex_array(Some(&vao));
+        self.context.bind_vertex_array(Some(&vao));
 
-        context.vertex_attrib_pointer_with_i32(
+        self.context.vertex_attrib_pointer_with_i32(
             position_attribute_location as u32,
             3,
             WebGl2RenderingContext::FLOAT,
@@ -107,19 +121,10 @@ impl ShaderCanvas {
             0,
             0,
         );
-        context.enable_vertex_attrib_array(position_attribute_location as u32);
-
-        context.bind_vertex_array(Some(&vao));
-
-        Ok(ShaderCanvas {
-            canvas,
-            context,
-            iresolution_loc,
-            imouse_loc,
-            itime_loc,
-            vertex_count: vertices.len() / 3,
-            time: Instant::now(),
-        })
+        self.context
+            .enable_vertex_attrib_array(position_attribute_location as u32);
+        self.context.bind_vertex_array(Some(&vao));
+        Ok(())
     }
 
     pub fn draw(&self) {
@@ -135,7 +140,7 @@ impl ShaderCanvas {
         self.context.draw_arrays(
             WebGl2RenderingContext::TRIANGLES,
             0,
-            self.vertex_count as i32,
+            (VERTICES.len() / 3) as i32,
         );
     }
 }
