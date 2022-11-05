@@ -14,18 +14,13 @@ pub fn start() -> Result<(), JsValue> {
     let mut shader_canvas = ShaderCanvas::new(canvas.clone())?;
     let shader_program = include_str!("shader.glsl");
     shader_canvas.set_shader(shader_program)?;
-    let shader_canvas = Rc::new(shader_canvas);
-
-    {
-        let clone = shader_canvas.clone();
-        let closure = Closure::<dyn FnMut(_)>::new(move |_event: web_sys::MouseEvent| {
-            clone.draw();
-        });
-        canvas.add_event_listener_with_callback("mousedown", closure.as_ref().unchecked_ref())?;
-        closure.forget();
-    }
-
-    shader_canvas.draw();
-
+    let closure = Closure::<dyn Fn()>::new(move || {
+        shader_canvas.draw();
+    });        
+    
+    let redraw_interval = std::time::Duration::from_millis(50);
+    window.set_interval_with_callback_and_timeout_and_arguments_0(
+        closure.as_ref().unchecked_ref(), redraw_interval.as_millis() as i32)?;
+    closure.forget();
     Ok(())
 }
