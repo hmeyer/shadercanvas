@@ -33,19 +33,17 @@ static VERTEX_SHADER: &'static str = r##"#version 300 es
 "##;
 
 static FRAG_SHADER_PREFIX: &'static str = r##"#version 300 es
-precision highp float;
-out vec4 outColor;
-uniform vec2 iResolution;
-uniform vec2 iMouse;
-uniform float iTime;
+    precision highp float;
+    out vec4 outColor;
+    uniform vec2 iResolution;
+    uniform vec2 iMouse;
+    uniform float iTime;
 "##;
 
-static FRAG_SHADER_SUFFIX: &'static str = r##"#version 300 es
-precision highp float;
-out vec4 outColor;
-uniform vec2 iResolution;
-uniform vec2 iMouse;
-uniform float iTime;
+static FRAG_SHADER_SUFFIX: &'static str = r##"
+    void main() {
+        mainImage(outColor, gl_FragCoord.xy);
+    }
 "##;
 
 impl ShaderCanvas {
