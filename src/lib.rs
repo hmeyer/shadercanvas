@@ -127,7 +127,7 @@ impl ShaderCanvas {
         Ok(())
     }
 
-    pub fn uniformMatrix4fv(&self, uniform_name: &str, data: &[f32]) {
+    pub fn uniform_matrix4fv(&self, uniform_name: &str, data: &[f32]) {
         if let Some(p) = &self.program {
             let loc = self.context.get_uniform_location(&p, uniform_name);
             self.context.uniform_matrix4fv_with_f32_array(loc.as_ref(), false, data);
