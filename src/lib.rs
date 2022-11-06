@@ -11,6 +11,7 @@ pub struct ShaderCanvas {
     iresolution_loc: Option<WebGlUniformLocation>,
     imouse_loc: Option<WebGlUniformLocation>,
     itime_loc: Option<WebGlUniformLocation>,
+    program: Option<WebGlProgram>,
 }
 
 static VERTICES: &'static [f32] = &[
@@ -64,6 +65,7 @@ impl ShaderCanvas {
             iresolution_loc: None,
             imouse_loc: None,
             itime_loc: None,
+            program: None,
         };
         result.set_shader(DEFAULT_SHADER)?;
         Ok(result)
@@ -123,6 +125,13 @@ impl ShaderCanvas {
             .enable_vertex_attrib_array(position_attribute_location as u32);
         self.context.bind_vertex_array(Some(&vao));
         Ok(())
+    }
+
+    pub fn uniformMatrix4fv(&self, uniform_name: &str, data: &[f32]) {
+        if let Some(p) = &self.program {
+            let loc = self.context.get_uniform_location(&p, uniform_name);
+            self.context.uniform_matrix4fv_with_f32_array(loc.as_ref(), false, data);
+        }
     }
 
     pub fn draw(&self) {
