@@ -86,14 +86,14 @@ impl ShaderCanvas {
             &frag_shader,
         )?;
 
-        let program = link_program(&self.context, &vert_shader, &frag_shader)?;
-        self.context.use_program(Some(&program));
+        self.program = link_program(&self.context, &vert_shader, &frag_shader)?;
+        self.context.use_program(Some(&self.program));
 
-        self.iresolution_loc = self.context.get_uniform_location(&program, "iResolution");
-        self.imouse_loc = self.context.get_uniform_location(&program, "iMouse");
-        self.itime_loc = self.context.get_uniform_location(&program, "iTime");
+        self.iresolution_loc = self.context.get_uniform_location(&self.program, "iResolution");
+        self.imouse_loc = self.context.get_uniform_location(&self.program, "iMouse");
+        self.itime_loc = self.context.get_uniform_location(&self.program, "iTime");
 
-        let position_attribute_location = self.context.get_attrib_location(&program, "position");
+        let position_attribute_location = self.context.get_attrib_location(&self.program, "position");
         let buffer = self
             .context
             .create_buffer()
