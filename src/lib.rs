@@ -86,14 +86,14 @@ impl ShaderCanvas {
             &frag_shader,
         )?;
 
-        self.program = link_program(&self.context, &vert_shader, &frag_shader)?;
-        self.context.use_program(Some(&self.program));
+        let program = link_program(&self.context, &vert_shader, &frag_shader)?;
+        self.context.use_program(Some(&program));
 
-        self.iresolution_loc = self.context.get_uniform_location(&self.program, "iResolution");
-        self.imouse_loc = self.context.get_uniform_location(&self.program, "iMouse");
-        self.itime_loc = self.context.get_uniform_location(&self.program, "iTime");
+        self.iresolution_loc = self.context.get_uniform_location(&program, "iResolution");
+        self.imouse_loc = self.context.get_uniform_location(&program, "iMouse");
+        self.itime_loc = self.context.get_uniform_location(&program, "iTime");
 
-        let position_attribute_location = self.context.get_attrib_location(&self.program, "position");
+        let position_attribute_location = self.context.get_attrib_location(&program, "position");
         let buffer = self
             .context
             .create_buffer()
@@ -107,6 +107,8 @@ impl ShaderCanvas {
             WebGl2RenderingContext::STATIC_DRAW,
         );
 
+        self.program = Some(program);
+        
         let vao = self
             .context
             .create_vertex_array()
