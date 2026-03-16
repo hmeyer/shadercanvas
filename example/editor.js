@@ -5,9 +5,6 @@ import {keymap} from "https://esm.sh/@codemirror/view@6.36.5";
 import {HighlightStyle, syntaxHighlighting} from "https://esm.sh/@codemirror/language@6.10.8";
 import {tags} from "https://esm.sh/@lezer/highlight@1.2.1";
 
-// Read the default shader from the Rust/WASM side (set on window.defaultShader)
-const defaultShader = window.defaultShader || "void mainImage(out vec4 c, in vec2 f) { c = vec4(0.0); }";
-
 const errorBox = document.getElementById('error-box');
 
 // Custom highlight style for GLSL keywords and types
@@ -36,6 +33,27 @@ function compile(view) {
   return true;
 }
 
+// Wait for the WASM module to set window.defaultShader before creating the editor
+function getDefaultShader() {
+  if (window.defaultShader) return Promise.resolve(window.defaultShader);
+  return new Promise((resolve) => {
+    const fallback = "void mainImage(out vec4 c, in vec2 f) { c = vec4(0.0); }";
+    let attempts = 0;
+    const interval = setInterval(() => {
+      attempts++;
+      if (window.defaultShader) {
+        clearInterval(interval);
+        resolve(window.defaultShader);
+      } else if (attempts >= 50) {
+        clearInterval(interval);
+        resolve(fallback);
+      }
+    }, 100);
+  });
+}
+
+const defaultShader = await getDefaultShader();
+
 const editor = new EditorView({
   doc: defaultShader,
   extensions: [
@@ -49,7 +67,7 @@ const editor = new EditorView({
       run: compile,
     }]),
     EditorView.theme({
-      "&": {maxHeight: "500px"},
+      "&": {minHeight: "300px", maxHeight: "500px"},
       ".cm-scroller": {overflow: "auto"},
     }),
   ],
