@@ -30,10 +30,67 @@
         border-radius: 8px;
         box-shadow: 0 4px 24px rgba(0,0,0,0.5);
       }
+      #editor-container {
+        margin-top: 1em;
+        width: 640px;
+      }
+      #editor-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5em;
+      }
+      #editor-toolbar label {
+        font-size: 0.9em;
+        opacity: 0.7;
+      }
+      #compile-btn {
+        padding: 6px 20px;
+        background: #4a6fa5;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9em;
+      }
+      #compile-btn:hover {
+        background: #5a8fd5;
+      }
+      #editor {
+        border-radius: 8px;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+        overflow: hidden;
+      }
+      #editor .cm-editor {
+        max-height: 300px;
+        font-size: 14px;
+      }
+      #error-box {
+        margin-top: 0.5em;
+        padding: 8px 12px;
+        background: #3a1a1a;
+        color: #ff6b6b;
+        border-radius: 6px;
+        font-family: monospace;
+        font-size: 0.85em;
+        white-space: pre-wrap;
+        display: none;
+      }
     </style>
   </head>
   <body>
     <h1><a href="https://github.com/hmeyer/shadercanvas">ShaderCanvas</a> Demo</h1>
     <canvas id="canvas" height="400" width="640"></canvas>
+    <div id="editor-container">
+      <div id="editor-toolbar">
+        <label>Fragment Shader (GLSL) &mdash; Ctrl+Enter to compile</label>
+        <button id="compile-btn">Compile</button>
+      </div>
+      <div id="editor"></div>
+      <div id="error-box"></div>
+    </div>
+
+    <link data-trunk rel="copy-file" href="./editor.js"/>
+    <script type="module" src="./editor.js"></script>
   </body>
 </html>
