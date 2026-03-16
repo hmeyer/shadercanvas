@@ -2,20 +2,26 @@ import {EditorView, basicSetup} from "https://esm.sh/@codemirror/basic-setup@0.2
 import {cpp} from "https://esm.sh/@codemirror/lang-cpp@6.0.2";
 import {oneDark} from "https://esm.sh/@codemirror/theme-one-dark@6.1.2";
 import {keymap} from "https://esm.sh/@codemirror/view@6.36.5";
+import {HighlightStyle, syntaxHighlighting} from "https://esm.sh/@codemirror/language@6.10.8";
+import {tags} from "https://esm.sh/@lezer/highlight@1.2.1";
 
-const defaultShader = `void mainImage( out vec4 fragColor, in vec2 fragCoord )
-{
-    // Normalized pixel coordinates (from 0 to 1)
-    vec2 uv = fragCoord/iResolution.xy;
-
-    // Time varying pixel color
-    vec3 col = 0.5 + 0.5*cos(iTime+uv.xyx+vec3(0,2,4));
-
-    // Output to screen
-    fragColor = vec4(col,1.0);
-}`;
+// Read the default shader from the Rust/WASM side (set on window.defaultShader)
+const defaultShader = window.defaultShader || "void mainImage(out vec4 c, in vec2 f) { c = vec4(0.0); }";
 
 const errorBox = document.getElementById('error-box');
+
+// Custom highlight style for GLSL keywords and types
+const glslHighlight = HighlightStyle.define([
+  {tag: tags.keyword, color: "#c678dd", fontWeight: "bold"},
+  {tag: tags.typeName, color: "#e5c07b"},
+  {tag: tags.number, color: "#d19a66"},
+  {tag: tags.string, color: "#98c379"},
+  {tag: tags.comment, color: "#7f848e", fontStyle: "italic"},
+  {tag: tags.function(tags.variableName), color: "#61afef"},
+  {tag: tags.operator, color: "#56b6c2"},
+  {tag: tags.definition(tags.variableName), color: "#e06c75"},
+  {tag: tags.propertyName, color: "#61afef"},
+]);
 
 function compile(view) {
   if (typeof window.setShader !== 'function') return true;
@@ -36,13 +42,14 @@ const editor = new EditorView({
     basicSetup,
     cpp(),
     oneDark,
+    syntaxHighlighting(glslHighlight),
     keymap.of([{
       key: "Ctrl-Enter",
       mac: "Cmd-Enter",
       run: compile,
     }]),
     EditorView.theme({
-      "&": {maxHeight: "300px"},
+      "&": {maxHeight: "500px"},
       ".cm-scroller": {overflow: "auto"},
     }),
   ],

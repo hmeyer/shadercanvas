@@ -22,6 +22,13 @@ pub fn start() -> Result<(), JsValue> {
         *sc.borrow_mut() = Some(shader_canvas);
     });
 
+    // Expose the default shader so the editor can read it without duplicating
+    js_sys::Reflect::set(
+        &window,
+        &JsValue::from_str("defaultShader"),
+        &JsValue::from_str(shader_program),
+    )?;
+
     // Register set_shader as a global function so the editor can call it
     let set_shader_closure = Closure::<dyn Fn(String) -> JsValue>::new(|code: String| {
         SHADER_CANVAS.with(|sc| {
