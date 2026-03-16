@@ -8,7 +8,7 @@ edition = "2024"
 crate-type = ["cdylib"]
 
 [dependencies]
-shadercanvas = { git = "https://github.com/hmeyer/shadercanvas" }
+shadercanvas = { path = ".." }
 wasm-bindgen = "0.2.114"
 
 [dependencies.web-sys]
