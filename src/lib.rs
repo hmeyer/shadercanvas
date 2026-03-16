@@ -1,7 +1,6 @@
-use js_sys;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
-use wasm_timer::Instant;
+use web_time::Instant;
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlShader, WebGlUniformLocation};
 
 pub struct ShaderCanvas {
@@ -14,18 +13,18 @@ pub struct ShaderCanvas {
     program: Option<WebGlProgram>,
 }
 
-static VERTICES: &'static [f32] = &[
+static VERTICES: &[f32] = &[
     -1.0, -1.0, 0.0, 1.0, -1.0, 0.0, -1.0, 1.0, 0.0, -1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, -1.0, 0.0,
 ];
 
-static DEFAULT_SHADER: &'static str = r##"
+static DEFAULT_SHADER: &str = r##"
     void mainImage( out vec4 fragColor, in vec2 fragCoord )
     {
         fragColor = vec4(0.5);
     }
 "##;
 
-static VERTEX_SHADER: &'static str = r##"#version 300 es
+static VERTEX_SHADER: &str = r##"#version 300 es
     in vec4 position;
 
     void main() {
@@ -33,7 +32,7 @@ static VERTEX_SHADER: &'static str = r##"#version 300 es
     }
 "##;
 
-static FRAG_SHADER_PREFIX: &'static str = r##"#version 300 es
+static FRAG_SHADER_PREFIX: &str = r##"#version 300 es
     precision highp float;
     out vec4 outColor;
     uniform vec2 iResolution;
@@ -41,7 +40,7 @@ static FRAG_SHADER_PREFIX: &'static str = r##"#version 300 es
     uniform float iTime;
 "##;
 
-static FRAG_SHADER_SUFFIX: &'static str = r##"
+static FRAG_SHADER_SUFFIX: &str = r##"
     void main() {
         mainImage(outColor, gl_FragCoord.xy);
     }
@@ -100,7 +99,7 @@ impl ShaderCanvas {
             .ok_or("Failed to create buffer")?;
         self.context
             .bind_buffer(WebGl2RenderingContext::ARRAY_BUFFER, Some(&buffer));
-        let positions_array_buf_view = js_sys::Float32Array::from(&VERTICES[..]);
+        let positions_array_buf_view = js_sys::Float32Array::from(VERTICES);
         self.context.buffer_data_with_array_buffer_view(
             WebGl2RenderingContext::ARRAY_BUFFER,
             &positions_array_buf_view,
@@ -131,7 +130,7 @@ impl ShaderCanvas {
 
     pub fn uniform_matrix4fv(&self, uniform_name: &str, data: &[f32]) {
         if let Some(p) = &self.program {
-            let loc = self.context.get_uniform_location(&p, uniform_name);
+            let loc = self.context.get_uniform_location(p, uniform_name);
             self.context.uniform_matrix4fv_with_f32_array(loc.as_ref(), false, data);
         }
     }
