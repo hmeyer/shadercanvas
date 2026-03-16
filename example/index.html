@@ -1,8 +1,39 @@
 <html>
   <head>
     <meta content="text/html;charset=utf-8" http-equiv="Content-Type"/>
+    <title>ShaderCanvas Demo</title>
+    <style>
+      body {
+        margin: 0;
+        background: #1a1a2e;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        font-family: system-ui, sans-serif;
+        color: #e0e0e0;
+      }
+      h1 {
+        margin-bottom: 0.5em;
+        font-weight: 300;
+        letter-spacing: 0.05em;
+      }
+      h1 a {
+        color: #e0e0e0;
+        text-decoration: none;
+      }
+      h1 a:hover {
+        text-decoration: underline;
+      }
+      canvas {
+        border-radius: 8px;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+      }
+    </style>
   </head>
   <body>
-    <canvas id="canvas" height="200" width="320"></canvas>
+    <h1><a href="https://github.com/hmeyer/shadercanvas">ShaderCanvas</a> Demo</h1>
+    <canvas id="canvas" height="400" width="640"></canvas>
   </body>
 </html>

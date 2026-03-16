@@ -1,8 +1,6 @@
 use shadercanvas::ShaderCanvas;
-use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
-
-use std::rc::Rc;
+use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(start)]
 pub fn start() -> Result<(), JsValue> {

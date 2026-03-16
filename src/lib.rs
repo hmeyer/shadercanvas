@@ -1,7 +1,7 @@
-use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
-use web_time::Instant;
+use wasm_bindgen::prelude::*;
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlShader, WebGlUniformLocation};
+use web_time::Instant;
 
 pub struct ShaderCanvas {
     canvas: web_sys::HtmlCanvasElement,
@@ -107,7 +107,7 @@ impl ShaderCanvas {
         );
 
         self.program = Some(program);
-        
+
         let vao = self
             .context
             .create_vertex_array()
@@ -131,7 +131,8 @@ impl ShaderCanvas {
     pub fn uniform_matrix4fv(&self, uniform_name: &str, data: &[f32]) {
         if let Some(p) = &self.program {
             let loc = self.context.get_uniform_location(p, uniform_name);
-            self.context.uniform_matrix4fv_with_f32_array(loc.as_ref(), false, data);
+            self.context
+                .uniform_matrix4fv_with_f32_array(loc.as_ref(), false, data);
         }
     }
 
