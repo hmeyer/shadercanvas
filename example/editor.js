@@ -61,12 +61,15 @@ function initEditor() {
 }
 
 // Wait for WASM to finish loading before creating the editor.
-// Trunk dispatches TrunkApplicationStarted after the WASM module is initialized,
-// so we listen for that event instead of using a top-level await (which would
-// block the WASM init script from running, causing a deadlock).
-if (window.defaultShader) {
-  // WASM already loaded (unlikely but handle it)
-  initEditor();
-} else {
-  window.addEventListener("TrunkApplicationStarted", () => initEditor(), {once: true});
+// We poll for window.defaultShader using setTimeout so we don't block
+// the main thread (a top-level await would deadlock with Trunk's WASM
+// init script, and the TrunkApplicationStarted event is only dispatched
+// when using Trunk's initializer feature).
+function waitForWasm() {
+  if (window.defaultShader) {
+    initEditor();
+  } else {
+    setTimeout(waitForWasm, 50);
+  }
 }
+waitForWasm();
