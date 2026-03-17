@@ -33,45 +33,40 @@ function compile(view) {
   return true;
 }
 
-// Wait for the WASM module to set window.defaultShader before creating the editor
-function getDefaultShader() {
-  if (window.defaultShader) return Promise.resolve(window.defaultShader);
-  return new Promise((resolve) => {
-    const fallback = "void mainImage(out vec4 c, in vec2 f) { c = vec4(0.0); }";
-    let attempts = 0;
-    const interval = setInterval(() => {
-      attempts++;
-      if (window.defaultShader) {
-        clearInterval(interval);
-        resolve(window.defaultShader);
-      } else if (attempts >= 50) {
-        clearInterval(interval);
-        resolve(fallback);
-      }
-    }, 100);
+function initEditor() {
+  const shaderCode = window.defaultShader ||
+    "void mainImage(out vec4 c, in vec2 f) { c = vec4(0.0); }";
+
+  const editor = new EditorView({
+    doc: shaderCode,
+    extensions: [
+      basicSetup,
+      cpp(),
+      oneDark,
+      syntaxHighlighting(glslHighlight),
+      keymap.of([{
+        key: "Ctrl-Enter",
+        mac: "Cmd-Enter",
+        run: compile,
+      }]),
+      EditorView.theme({
+        "&": {minHeight: "300px", maxHeight: "500px"},
+        ".cm-scroller": {overflow: "auto"},
+      }),
+    ],
+    parent: document.getElementById('editor'),
   });
+
+  document.getElementById('compile-btn').addEventListener('click', () => compile(editor));
 }
 
-const defaultShader = await getDefaultShader();
-
-const editor = new EditorView({
-  doc: defaultShader,
-  extensions: [
-    basicSetup,
-    cpp(),
-    oneDark,
-    syntaxHighlighting(glslHighlight),
-    keymap.of([{
-      key: "Ctrl-Enter",
-      mac: "Cmd-Enter",
-      run: compile,
-    }]),
-    EditorView.theme({
-      "&": {minHeight: "300px", maxHeight: "500px"},
-      ".cm-scroller": {overflow: "auto"},
-    }),
-  ],
-  parent: document.getElementById('editor'),
-});
-
-document.getElementById('compile-btn').addEventListener('click', () => compile(editor));
+// Wait for WASM to finish loading before creating the editor.
+// Trunk dispatches TrunkApplicationStarted after the WASM module is initialized,
+// so we listen for that event instead of using a top-level await (which would
+// block the WASM init script from running, causing a deadlock).
+if (window.defaultShader) {
+  // WASM already loaded (unlikely but handle it)
+  initEditor();
+} else {
+  window.addEventListener("TrunkApplicationStarted", () => initEditor(), {once: true});
+}
