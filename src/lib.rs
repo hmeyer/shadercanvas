@@ -155,10 +155,8 @@ impl ShaderCanvas {
         let now = (self.time.elapsed().as_millis() as f64 / 1000.0) as f32;
         self.context
             .uniform1fv_with_f32_array(self.itime_loc.as_ref(), &[now]);
-        self.context.uniform2fv_with_f32_array(
-            self.imouse_loc.as_ref(),
-            &[self.mouse_x, self.mouse_y],
-        );
+        self.context
+            .uniform2fv_with_f32_array(self.imouse_loc.as_ref(), &[self.mouse_x, self.mouse_y]);
         self.context.draw_arrays(
             WebGl2RenderingContext::TRIANGLES,
             0,
