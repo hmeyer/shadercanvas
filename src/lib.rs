@@ -11,6 +11,8 @@ pub struct ShaderCanvas {
     imouse_loc: Option<WebGlUniformLocation>,
     itime_loc: Option<WebGlUniformLocation>,
     program: Option<WebGlProgram>,
+    mouse_x: f32,
+    mouse_y: f32,
 }
 
 static VERTICES: &[f32] = &[
@@ -65,6 +67,8 @@ impl ShaderCanvas {
             imouse_loc: None,
             itime_loc: None,
             program: None,
+            mouse_x: 0.0,
+            mouse_y: 0.0,
         };
         result.set_shader(DEFAULT_SHADER)?;
         Ok(result)
@@ -136,6 +140,11 @@ impl ShaderCanvas {
         }
     }
 
+    pub fn set_mouse(&mut self, x: f32, y: f32) {
+        self.mouse_x = x;
+        self.mouse_y = y;
+    }
+
     pub fn draw(&self) {
         self.context.clear_color(0.0, 0.0, 0.0, 1.0);
         self.context.clear(WebGl2RenderingContext::COLOR_BUFFER_BIT);
@@ -146,6 +155,10 @@ impl ShaderCanvas {
         let now = (self.time.elapsed().as_millis() as f64 / 1000.0) as f32;
         self.context
             .uniform1fv_with_f32_array(self.itime_loc.as_ref(), &[now]);
+        self.context.uniform2fv_with_f32_array(
+            self.imouse_loc.as_ref(),
+            &[self.mouse_x, self.mouse_y],
+        );
         self.context.draw_arrays(
             WebGl2RenderingContext::TRIANGLES,
             0,

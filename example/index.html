@@ -57,14 +57,18 @@
         background: #5a8fd5;
       }
       #editor {
+        width: 100%;
+        height: 300px;
+        background: #282c34;
+        color: #abb2bf;
+        border: none;
         border-radius: 8px;
         box-shadow: 0 4px 24px rgba(0,0,0,0.5);
-        overflow: hidden;
-      }
-      #editor .cm-editor {
-        min-height: 300px;
-        max-height: 500px;
-        font-size: 14px;
+        font-family: monospace;
+        font-size: 13px;
+        padding: 12px;
+        box-sizing: border-box;
+        resize: vertical;
       }
       #error-box {
         margin-top: 0.5em;
@@ -87,7 +91,7 @@
         <label>Fragment Shader (GLSL) &mdash; Ctrl+Enter to compile</label>
         <button id="compile-btn">Compile</button>
       </div>
-      <div id="editor"></div>
+      <textarea id="editor" spellcheck="false"></textarea>
       <div id="error-box"></div>
     </div>
 
